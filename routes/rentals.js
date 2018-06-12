@@ -32,7 +32,7 @@ router.post("/", async (req, res) => {
     movie: {
       _id: movie._id,
       title: movie.title,
-      dailyRate: movie.dailyRate
+      dailyRentalRate: movie.dailyRate
     },
     customer: {
       _id: customer._id,

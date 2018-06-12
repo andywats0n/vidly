@@ -1,4 +1,5 @@
 const { Genre, validate } = require("../models/genre");
+const validateObjectId = require("../middleware/validateObjectId");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 const express = require("express");
@@ -36,7 +37,7 @@ router.put("/:id", async (req, res) => {
   res.send(genre);
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", validateObjectId, async (req, res) => {
   const genre = await Genre.findById(req.params.id);
   if (!genre) return res.status(404).send("Genre with given ID was not found.");
   res.send(genre);

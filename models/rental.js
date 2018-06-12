@@ -1,61 +1,75 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
+const moment = require("moment");
 
-const Rental = mongoose.model(
-  "Rental",
-  new mongoose.Schema({
-    rentalDate: {
-      type: Date,
-      default: Date.now,
-      required: true
-    },
-    returnDate: {
-      type: Date
-    },
-    rentalFee: {
-      type: Number,
-      min: 0
-    },
-    movie: {
-      type: new mongoose.Schema({
-        title: {
-          type: String,
-          required: true,
-          trim: true,
-          minLength: 5,
-          maxLength: 255
-        },
-        dailyRate: {
-          type: Number,
-          required: true,
-          min: 0,
-          max: 255
-        }
-      }),
-      required: true
-    },
-    customer: {
-      type: new mongoose.Schema({
-        name: {
-          type: String,
-          required: true,
-          minLength: 5,
-          maxLength: 50
-        },
-        isGold: {
-          type: Boolean,
-          required: true
-        },
-        phone: {
-          type: String,
-          required: true,
-          length: 10
-        }
-      }),
-      required: true
-    }
-  })
-);
+const rentalSchema = new mongoose.Schema({
+  rentalDate: {
+    type: Date,
+    default: Date.now
+  },
+  returnDate: {
+    type: Date
+  },
+  rentalFee: {
+    type: Number,
+    min: 0
+  },
+  movie: {
+    type: new mongoose.Schema({
+      title: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 5,
+        maxlength: 255
+      },
+      dailyRentalRate: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 255
+      }
+    }),
+    required: true
+  },
+  customer: {
+    type: new mongoose.Schema({
+      name: {
+        type: String,
+        required: true,
+        minlength: 5,
+        maxlength: 50
+      },
+      isGold: {
+        type: Boolean,
+        default: false
+      },
+      phone: {
+        type: String,
+        required: true,
+        minlength: 5,
+        maxlength: 50
+      }
+    }),
+    required: true
+  }
+});
+
+rentalSchema.statics.lookup = function(customerId, movieId) {
+  return this.findOne({
+    "customer._id": customerId,
+    "movie._id": movieId
+  });
+};
+
+rentalSchema.methods.return = function() {
+  this.returnDate = new Date();
+
+  const rentalDays = moment().diff(this.rentalDate, "days");
+  this.rentalFee = rentalDays * this.movie.dailyRentalRate;
+};
+
+const Rental = mongoose.model("Rental", rentalSchema);
 
 function validateRental(rental) {
   const schema = {
